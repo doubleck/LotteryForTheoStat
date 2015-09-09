@@ -1,0 +1,93 @@
+---
+title: "Project for Theoretical Statistics"
+author: "Jung-Han Wang"
+date: "September 8, 2015"
+output: pdf_document
+---
+
+In today class, we have an optional project for Theoretical Statistics I.
+
+In the lecture, Professor Zhang mentioned that the selection can be categorized into four settings.
+
+|         | without replacement| with replacement|
+|--------:|-------------------:|----------------:|
+|  Ordered|$\dfrac{n!}{(n-r)!}$| $n^{r}$           |
+|Unordered| ${{n}\choose{r}}$  | ${{n+r-1}\choose{r}}$ |
+
+##Variable Explanation
+
+- Variable _replace_, _ordered_, are binary variables with value 0 or 1.
+- Variable _ticket_ is the number of lottery bought.
+- Variable _n_ is all the numbers that you can choose.
+- Variable _c_ is the number of selected for any subset.
+
+I found out that the factorial function in base R use gamma approximation.  When the value is too large the result will be biased.  In this case, I created a fatorial function called _myFactorial_
+
+The R Code starts here:
+```{r}
+rm(list=ls())   ##Clear memory space
+
+## Create Function to calculate Factorial 
+myFactorial <- function(x) {
+    if (x == 0)
+      {return(1)}
+  return(x*myFactorial(x-1))
+}
+
+## Function to determine integer
+check.integer <- function(x) {
+    x == round(x)
+}
+
+lottery<-function(replace=0,ordered=0,ticket=1,n=53,r=6){
+  stopifnot(replace==0|replace==1)  ##Stop if replace is not a binary variable
+  stopifnot(ordered==0|ordered==1)  ##Stop if ordered is not a binary variable
+  stopifnot(check.integer(ticket))  ##Stop if ticket is not an integer
+  stopifnot(ticket>0)               ##Stop if ticket is less than 1
+  stopifnot(check.integer(n))       ##Stop if n is not an integer
+  stopifnot(check.integer(r))       ##Stop if r is not an integer
+  stopifnot((n-r)>0)                ##Make sure n greater than r
+  
+  #Categorize them into four categories
+  if (replace==0 && ordered==1){type=1}
+  else if (replace==1 && ordered==1){type=2}
+  else if (replace==0 && ordered==0){type=3}
+  else if (replace==1 && ordered==0){type=4}
+
+  #Calculate for type=1 which is without replacement but ordered
+  if (type==1){
+    event<-myFactorial(n)/myFactorial(n-r)
+  }
+  #Calculate for type=2 which is with replacement and ordered
+  else if (type==2){
+    event<-(n)^(r)
+  }
+  #Calculate for type=3 which is without replacement nor unordered
+  else if (type==3){
+    event<-(myFactorial(n))/(myFactorial(r)*myFactorial(n-r))
+  }
+  #Calculate for type=2 which is with replacement but unorder
+  else if (type==4){
+    event<-(myFactorial(n+r-1))/(myFactorial(r)*myFactorial(n-1))
+  }
+  
+  ##Calculate winning rate
+  winRate<-(1/event)*ticket
+  
+  return(cat(c(paste0("Your chance of winning the lottery is ",winRate),
+       paste0("The number of outcomes is ",event)
+       ),sep="\n"))
+}
+```
+
+##Example1
+
+```{r}
+lottery(replace=0,ordered=0,ticket=1,n=54,r=7)
+```
+
+##Example2
+
+```{r}
+lottery(replace=1,ordered=0,ticket=2,n=35,r=5)
+```
